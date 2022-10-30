@@ -100,10 +100,12 @@ double path_length(int *path, double *distance, int n) {
 	for (int i = 0; i < n-1; i++) {
 		total += distance[n*path[i]+path[i+1]];
 	}
+	total += distance[n*path[n-1]+path[0]];	// path is a cycle
 
 	return total;
 }
 
+// Generates a new random modification of a path
 void new_path(int *path, int *path_temp, int n) {
 	// Duplicate current path into temp
 	memcpy(path_temp, path, n * sizeof(int));
@@ -113,6 +115,7 @@ void new_path(int *path, int *path_temp, int n) {
 	path_invert_section(path_temp, n);
 }
 
+// Returns the energy (path length) difference of two paths
 double energy_diff(int *path, int *path_temp, double *distance, int n) {
 	double E_i = path_length(path, distance, n);
 	double E_temp = path_length(path_temp, distance, n);
@@ -173,6 +176,7 @@ int main(int argc, char const *argv[]) {
 			memcpy(path, path_temp, n * sizeof(int));
 		}
 
+		// Cool down every 100 iterations
 		if (iteration % 100 == 0) temperature--;
 
 		iteration++;
