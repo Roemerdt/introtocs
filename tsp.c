@@ -162,12 +162,13 @@ int main(int argc, char const *argv[]) {
 		double E_diff = energy_diff(path, path_temp, distance, n);
 
 		// SEE WHAT IS HAPPENING
+		// We should probably remove this afterwards
 		printf("Iteration: %d, T: %d, diff: %f\n", iteration, temperature, E_diff);
 
 		// Negative delta E
 		// Meaning path_temp is actually worse than what we had
 		if (E_diff < 0) {
-			// Propability P to change path to path_temp
+			// Probability P to change path to path_temp
 			if ((rand() / RAND_MAX) <= exp(E_diff / temperature)) {
 				memcpy(path, path_temp, n * sizeof(int));
 			}
@@ -183,8 +184,9 @@ int main(int argc, char const *argv[]) {
 	}
 
 	printf("PATH: \n");
-	for (int i = 0; i < n; i++) {
-		printf("%d, ", path[i]);
+	printf("%d", path[0]);
+	for (int i = 1; i < n; i++) {
+		printf(", %d", path[i]);
 	} printf("\n");
 
 	free(cities);
