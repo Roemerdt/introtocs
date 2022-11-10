@@ -153,7 +153,7 @@ int main(int argc, char const *argv[]) {
 
 	// Start simulated annealing
 	int iteration = 0;
-	int temperature = 100;
+	int temperature = 10000;
 	while (iteration < 10000 && temperature > 27) {
 		// Generate path_temp
 		new_path(path, path_temp, n);
@@ -162,7 +162,7 @@ int main(int argc, char const *argv[]) {
 		double E_diff = energy_diff(path, path_temp, distance, n);
 
 		// SEE WHAT IS HAPPENING
-		printf("Iteration: %d, T: %d, diff: %f\n", iteration, temperature, E_diff);
+		// printf("Iteration: %d, T: %d, diff: %f\n", iteration, temperature, E_diff);
 
 		// Negative delta E
 		// Meaning path_temp is actually worse than what we had
@@ -182,10 +182,12 @@ int main(int argc, char const *argv[]) {
 		iteration++;
 	}
 
-	printf("PATH: \n");
-	for (int i = 0; i < n; i++) {
-		printf("%d, ", path[i]);
-	} printf("\n");
+	Position current = cities[path[0]];
+	printf(("%d,%d"), current.x, current.y);
+	for (int i = 1; i < n; i++) {
+		current = cities[path[i]];
+		printf(";%d,%d", current.x, current.y);
+	}
 
 	free(cities);
 	free(distance);
