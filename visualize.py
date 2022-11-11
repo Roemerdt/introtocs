@@ -3,7 +3,7 @@ import os
 import numpy
 
 FILENAME = "a.out"
-INPUT = "2.in"
+INPUT = "1.in"
 
 pyplot.rc('axes', axisbelow=True)
 

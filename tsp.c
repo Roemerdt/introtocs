@@ -12,6 +12,15 @@ typedef struct Position {
 	int y;
 } Position;
 
+int min(int num1, int num2) {
+	return (num1 > num2 ) ? num2 : num1;
+}
+
+int max(int num1, int num2) {
+	return (num1 > num2 ) ? num1 : num2;
+}
+
+
 // Populate cities coordinates using user input
 void populate_cities(Position *cities, int n) {
 	int x, y;
@@ -20,6 +29,7 @@ void populate_cities(Position *cities, int n) {
 		cities[i] = (Position){.x = x, .y = y};
 	}
 }
+
 
 // Compute distances between cities
 void compute_distances(double *distance, Position *cities, int n) {
@@ -109,10 +119,6 @@ double path_length(int *path, double *distance, int n) {
 void new_path(int *path, int *path_temp, int n) {
 	// Duplicate current path into temp
 	memcpy(path_temp, path, n * sizeof(int));
-	// Modify temp
-	path_swap_cities(path_temp, n);
-	path_shift(path_temp, n);
-	path_invert_section(path_temp, n);
 }
 
 // Returns the energy (path length) difference of two paths
@@ -121,6 +127,14 @@ double energy_diff(int *path, int *path_temp, double *distance, int n) {
 	double E_temp = path_length(path_temp, distance, n);
 
 	return E_i - E_temp;
+}
+
+// Computing the error value for a path
+int path_error(int *path, double *distance, int n) {
+	int dist = path_length(path, distance, n);
+	int min_distance = n-1;
+	// The length of the path and the minimum distance
+	return dist - min_distance;
 }
 
 int main(int argc, char const *argv[]) {
@@ -138,9 +152,11 @@ int main(int argc, char const *argv[]) {
 	Position *cities = malloc(n * sizeof(Position));
 	// 1D distance array of doubles indexed as [n*j+i] => [i][j]
 	double *distance = malloc(n * n * sizeof(double));
+
 	// Integer array of size n for path and path_temp
-	int *path = malloc(n * sizeof(n));
-	int *path_temp = malloc(n * sizeof(n));
+	int *path = malloc(n * sizeof(int));
+	int *path_temp = malloc(n * sizeof(int));
+	int *path_swap = malloc(n*sizeof(int));
 
 	// Populate cities
 	populate_cities(cities, n);
@@ -148,51 +164,78 @@ int main(int argc, char const *argv[]) {
 	// Compute distances
 	compute_distances(distance, cities, n);
 
-	// Initialise the path
+	// Initialize the path
 	init_path(path, n);
 
 	// Start simulated annealing
 	int iteration = 0;
-	int temperature = 10000;
-	while (iteration < 10000 && temperature > 27) {
+	// Set temperature
+	float temperature = 10000.0;
+	// Set initial error value
+	int err = path_error(path, distance, n);
+	
+	while (iteration < 2500 && err > 0.0) {
 		// Generate path_temp
 		new_path(path, path_temp, n);
-
+		
 		// Energy difference
 		double E_diff = energy_diff(path, path_temp, distance, n);
+		
+		// Storing the error value of an "adjacent" path
+		
+		// 2 swapped elements
+		memcpy(path_swap, path_temp, n * sizeof(int));
+		path_swap_cities(path_swap, n);
+    int swap_err = path_error(path_swap, distance, n);
+		
+		// Shifted path with 1 up or 1 down
+		memcpy(path_swap, path_temp, n * sizeof(int));
+		path_shift(path_swap, n);
+		int shift_err = path_error(path_swap, distance, n);
+		
+		// Random inverted segment of the path
+		memcpy(path_swap, path_temp, n * sizeof(int));
+		path_invert_section(path_swap, n);
+		int invert_err = path_error(path_swap, distance, n);
+
+		// Store the lowest error between all of the above
+		int adj_err = min(min(swap_err, shift_err), invert_err);
 
 		// SEE WHAT IS HAPPENING
-		// printf("Iteration: %d, T: %d, diff: %f\n", iteration, temperature, E_diff);
+		// printf("|Iteration: %d, T: %f, diff: %f, err:%d\n", iteration, temperature, E_diff, err);
 
-		// Negative delta E
-		// Meaning path_temp is actually worse than what we had
-		if (E_diff < 0) {
-			// Propability P to change path to path_temp
-			if ((rand() / RAND_MAX) <= exp(E_diff / temperature)) {
-				memcpy(path, path_temp, n * sizeof(int));
-			}
-		// Path_temp is better than or equal to what we had
-		} else {
+		// The current solution is better than the adjacent
+		if (adj_err < err) {
 			memcpy(path, path_temp, n * sizeof(int));
+		} else {
+			// It's a worse solution
+			// Probability P to change path to path_temp anyway
+			if (rand() < exp(E_diff / temperature)) {
+				memcpy(path, path_temp, n * sizeof(int));
+				err = adj_err;
+			}
 		}
-
-		// Cool down every 100 iterations
-		if (iteration % 100 == 0) temperature--;
-
+		// Keep the temperature at 0.000001
+		if (temperature < 0.00001) {
+      temperature = 0.00001;
+		}
+    else {
+			// Lower temperature by 1%
+      temperature *= 0.99;
+		}
 		iteration++;
 	}
 
-	Position current = cities[path[0]];
-	printf(("%d,%d"), current.x, current.y);
-	for (int i = 1; i < n; i++) {
-		current = cities[path[i]];
-		printf(";%d,%d", current.x, current.y);
-	}
+	// Print result
+	printf("%d", path[0]);
+	for (int i = 1; i < n; i++) {;
+		printf(",%d", path[i]);
+	} printf("\n");
 
 	free(cities);
 	free(distance);
 	free(path);
 	free(path_temp);
-	
+	free(path_swap);
 	return 0;
 }
