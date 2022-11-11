@@ -163,7 +163,7 @@ int main(int argc, char const *argv[]) {
 	// Start simulated annealing
 	int iteration = 0;
 	int temperature = 70;
-	while (iteration < 5000 && temperature > 10) {
+	while (iteration < 10000 && temperature > 5) {
 		// Generate path_temp
 		new_path(path, path_temp, n);
 
@@ -179,8 +179,8 @@ int main(int argc, char const *argv[]) {
 			// Propability P to change path to path_temp
 			double r2 = (double)rand() / (double)RAND_MAX;
 			printf("Generated chance: %f\n", r2);
-			printf("Necessary chance: %f\n", exp(E_diff * 20 / temperature));
-			if (r2 <= exp(E_diff * 20 / temperature)) {
+			printf("Necessary chance: %f\n", exp(E_diff * 10 / temperature));
+			if (r2 <= exp(E_diff * 10 / temperature)) {
 				printf("We choose to go with a worse path\n");
 				memcpy(path, path_temp, n * sizeof(int));
 			} else {
@@ -193,7 +193,7 @@ int main(int argc, char const *argv[]) {
 		}
 
 		// Cool down every 100 iterations
-		if (iteration % 59 == 0) temperature--;
+		if (iteration % 200 == 0) temperature--;
 
 		iteration++;
 
