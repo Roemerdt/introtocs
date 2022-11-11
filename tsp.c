@@ -100,7 +100,7 @@ double path_length(int *path, double *distance, int n) {
 	for (int i = 0; i < n-1; i++) {
 		total += distance[n*path[i]+path[i+1]];
 	}
-	total += distance[n*path[n-1]+path[0]];	// path is a cycle
+	// total += distance[n*path[n-1]+path[0]];	// path is a cycle
 
 	return total;
 }
@@ -109,10 +109,11 @@ double path_length(int *path, double *distance, int n) {
 void new_path(int *path, int *path_temp, int n) {
 	// Duplicate current path into temp
 	memcpy(path_temp, path, n * sizeof(int));
-	// Modify temp
+
+	// Modify new config [ADJUST]
 	path_swap_cities(path_temp, n);
-	path_shift(path_temp, n);
-	path_invert_section(path_temp, n);
+	// path_shift(path_temp, n);
+	// path_invert_section(path_temp, n);
 }
 
 // Returns the energy (path length) difference of two paths
@@ -121,6 +122,14 @@ double energy_diff(int *path, int *path_temp, double *distance, int n) {
 	double E_temp = path_length(path_temp, distance, n);
 
 	return E_i - E_temp;
+}
+
+void print_path(int *path, int n) {
+	printf("PATH: [%d", path[0]);
+	for (int i = 1; i < n; i++) {
+		printf(", %d", path[i]);
+	}
+	printf("]\n");
 }
 
 int main(int argc, char const *argv[]) {
@@ -153,8 +162,8 @@ int main(int argc, char const *argv[]) {
 
 	// Start simulated annealing
 	int iteration = 0;
-	int temperature = 100;
-	while (iteration < 10000 && temperature > 27) {
+	int temperature = 70;
+	while (iteration < 1000 && temperature > 10) {
 		// Generate path_temp
 		new_path(path, path_temp, n);
 
@@ -168,24 +177,29 @@ int main(int argc, char const *argv[]) {
 		// Meaning path_temp is actually worse than what we had
 		if (E_diff < 0) {
 			// Propability P to change path to path_temp
-			if ((rand() / RAND_MAX) <= exp(E_diff / temperature)) {
+			double r2 = (double)rand() / (double)RAND_MAX;
+			printf("Generated chance: %f\n", r2);
+			printf("Necessary chance: %f\n", exp(E_diff * 20 / temperature));
+			if (r2 <= exp(E_diff * 20 / temperature)) {
+				printf("We choose to go with a worse path\n");
 				memcpy(path, path_temp, n * sizeof(int));
+			} else {
+				printf("Did not select worse path\n");
 			}
 		// Path_temp is better than or equal to what we had
 		} else {
+			printf("Found an equal or better path\n");
 			memcpy(path, path_temp, n * sizeof(int));
 		}
 
 		// Cool down every 100 iterations
-		if (iteration % 100 == 0) temperature--;
+		if (iteration % 7 == 0) temperature--;
 
 		iteration++;
-	}
 
-	printf("PATH: \n");
-	for (int i = 0; i < n; i++) {
-		printf("%d, ", path[i]);
-	} printf("\n");
+		print_path(path, n);
+		printf("Path length: %f\n\n", path_length(path, distance, n));
+	}
 
 	free(cities);
 	free(distance);
