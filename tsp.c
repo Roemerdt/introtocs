@@ -163,7 +163,7 @@ int main(int argc, char const *argv[]) {
 	// Start simulated annealing
 	int iteration = 0;
 	int temperature = 70;
-	while (iteration < 1000 && temperature > 10) {
+	while (iteration < 5000 && temperature > 10) {
 		// Generate path_temp
 		new_path(path, path_temp, n);
 
@@ -193,7 +193,7 @@ int main(int argc, char const *argv[]) {
 		}
 
 		// Cool down every 100 iterations
-		if (iteration % 7 == 0) temperature--;
+		if (iteration % 59 == 0) temperature--;
 
 		iteration++;
 
